@@ -1,2 +1,2 @@
 # schemas-utils
-Scripts to handles schemas 
+Drumee Schemas Utils

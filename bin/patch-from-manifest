@@ -1,0 +1,38 @@
+#!/bin/bash
+script_dir="$(dirname "$(readlink -f "$0")")"
+base_dir="$(dirname $script_dir)"
+patches_dir=$base_dir/patches
+if [ ! -f "$patches_dir/manifest.txt" ]; then
+  echo "No manifest were found from $patches_dir. Skipped"
+  exit 0
+fi
+
+opt="--force=1 --schemas=$patches_dir --orphan=remove --ignore-error" 
+
+cd $base_dir
+for i in $(cat $patches_dir/manifest.txt); do
+  echo $i
+  target=null
+  if [[ $i =~ ^yellow_page\/.+\.sql$ ]]; then
+    target=yp 
+  elif [[ $i =~ ^drumate\/.+\.sql$ ]]; then
+    target=drumate
+  elif [[ $i =~ ^hub\/.+\.sql$ ]]; then
+    target=hub
+  elif [[ $i =~ ^common\/.+\.sql$ ]]; then
+    target=common
+  elif [[ $i =~ ^mailserver\/.+\.sql$ ]]; then
+    target=mailserver
+  elif [[ $i =~ ^utils\/.+\.sql$ ]]; then
+    target=utils
+  fi
+
+  if [ $target != "null" ]; then
+  	node $script_dir/patch.js --source=$i --target=$target $opt
+  else 
+    echo Invalid target
+  fi
+done
+if [ -x /usr/sbin/drumee ]; then
+  /usr/sbin/drumee start factory
+fi
